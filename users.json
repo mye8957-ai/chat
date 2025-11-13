@@ -1,0 +1,48 @@
+{
+  "system": {
+    "version": "1.0",
+    "created": "2024-01-15T00:00:00.000Z",
+    "lastUpdate": "2024-01-20T18:00:00.000Z"
+  },
+  "users": {
+    "user123": {
+      "username": "user123",
+      "password": "password123",
+      "id": "123456",
+      "nickname": "小明",
+      "avatar": "",
+      "registerTime": "2024-01-15T10:30:00.000Z",
+      "lastLogin": "2024-01-20T15:45:00.000Z"
+    },
+    "demo456": {
+      "username": "demo456",
+      "password": "demo45678",
+      "id": "654321",
+      "nickname": "小红",
+      "avatar": "",
+      "registerTime": "2024-01-16T14:20:00.000Z",
+      "lastLogin": "2024-01-20T16:30:00.000Z"
+    },
+    "test789": {
+      "username": "test789",
+      "password": "test78910",
+      "id": "987654",
+      "nickname": "小刚",
+      "avatar": "",
+      "registerTime": "2024-01-18T09:15:00.000Z",
+      "lastLogin": "2024-01-20T17:00:00.000Z"
+    }
+  },
+  "friendRequests": {
+    "user123": [
+      {
+        "from": "test789",
+        "fromId": "987654",
+        "fromNickname": "小刚",
+        "message": "你好，可以加个好友吗？",
+        "timestamp": "2024-01-20T10:00:00.000Z",
+        "status": "pending"
+      }
+    ]
+  }
+}
