@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>暗色简约聊天室</title>
     <style>
-        /* 全局样式 */
         * {
             margin: 0;
             padding: 0;
@@ -34,7 +33,6 @@
             align-items: center;
         }
 
-        /* 弹窗样式 */
         .modal {
             position: fixed;
             top: 0;
@@ -111,18 +109,18 @@
             background-color: #3a6590;
         }
 
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--accent-color);
+            margin-top: 10px;
+        }
+
         .text-center {
             text-align: center;
         }
 
         .mt-10 {
             margin-top: 10px;
-        }
-
-        .loading {
-            color: var(--secondary-text);
-            text-align: center;
-            padding: 20px;
         }
 
         .alert {
@@ -144,11 +142,39 @@
             border: 1px solid var(--danger-color);
             color: #ef9a9a;
         }
+
+        .token-info {
+            font-size: 12px;
+            color: var(--secondary-text);
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
+    <!-- Token配置弹窗 -->
+    <div id="tokenModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>配置GitHub Token</h2>
+            </div>
+            <form id="tokenForm">
+                <div class="form-group">
+                    <label for="githubToken">GitHub Personal Access Token</label>
+                    <input type="password" id="githubToken" placeholder="输入你的GitHub Token" required>
+                    <div class="token-info">
+                        需要 repo 权限，在 <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--accent-color);">GitHub设置</a> 中生成
+                    </div>
+                </div>
+                <button type="submit" class="btn">保存Token</button>
+                <div class="text-center mt-10">
+                    <p><a href="#" id="skipToken" style="color: var(--secondary-text);">跳过（仅本地使用）</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- 登录弹窗 -->
-    <div id="loginModal" class="modal">
+    <div id="loginModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>登录</h2>
@@ -200,16 +226,16 @@
     </div>
 
     <script>
-        // ==================== GitHub配置 ====================
+        // GitHub配置（固定部分）
         const GITHUB_CONFIG = {
             owner: "mye8957-ai",
             repo: "chat",
             path: "users.json",
-            token: "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",
             branch: "main"
         };
 
         const GITHUB_API_BASE = 'https://api.github.com';
+        let githubToken = '';
 
         // 显示提示信息
         function showAlert(containerId, message, type = 'error') {
@@ -222,13 +248,17 @@
 
         // 测试GitHub连接
         async function testGitHubConnection() {
+            if (!githubToken) {
+                return { success: false, message: '未设置GitHub Token' };
+            }
+
             try {
                 console.log('测试GitHub连接...');
                 const response = await fetch(
                     `${GITHUB_API_BASE}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`,
                     {
                         headers: {
-                            'Authorization': `token ${GITHUB_CONFIG.token}`,
+                            'Authorization': `token ${githubToken}`,
                             'Accept': 'application/vnd.github.v3+json'
                         }
                     }
@@ -236,32 +266,43 @@
                 
                 if (response.ok) {
                     console.log('GitHub仓库连接成功');
-                    return true;
+                    return { success: true, message: 'GitHub连接成功' };
                 } else {
-                    console.error('GitHub仓库连接失败:', response.status, response.statusText);
-                    return false;
+                    const errorData = await response.json();
+                    console.error('GitHub仓库连接失败:', response.status, errorData);
+                    return { 
+                        success: false, 
+                        message: `连接失败: ${response.status} - ${errorData.message || response.statusText}` 
+                    };
                 }
             } catch (error) {
                 console.error('GitHub连接错误:', error);
-                return false;
+                return { 
+                    success: false, 
+                    message: `网络错误: ${error.message}` 
+                };
             }
         }
 
         // 保存用户到GitHub
         async function saveUserToGitHub(userData) {
+            if (!githubToken) {
+                throw new Error('请先配置GitHub Token');
+            }
+
             console.log('开始保存用户到GitHub:', userData);
             
             try {
-                // 首先尝试获取现有文件
                 let existingData = { users: {} };
                 let sha = null;
                 
+                // 尝试获取现有文件
                 try {
                     const fileResponse = await fetch(
                         `${GITHUB_API_BASE}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`,
                         {
                             headers: {
-                                'Authorization': `token ${GITHUB_CONFIG.token}`,
+                                'Authorization': `token ${githubToken}`,
                                 'Accept': 'application/vnd.github.v3+json'
                             }
                         }
@@ -272,16 +313,14 @@
                         sha = fileInfo.sha;
                         const content = atob(fileInfo.content.replace(/\n/g, ''));
                         existingData = JSON.parse(content);
-                        console.log('找到现有文件:', existingData);
+                        console.log('找到现有文件');
                     }
                 } catch (error) {
                     console.log('文件不存在，将创建新文件');
                 }
 
                 // 更新用户数据
-                if (!existingData.users) {
-                    existingData.users = {};
-                }
+                if (!existingData.users) existingData.users = {};
                 existingData.users[userData.username] = userData;
                 existingData.lastUpdate = new Date().toISOString();
 
@@ -291,7 +330,7 @@
                     {
                         method: 'PUT',
                         headers: {
-                            'Authorization': `token ${GITHUB_CONFIG.token}`,
+                            'Authorization': `token ${githubToken}`,
                             'Content-Type': 'application/json',
                             'Accept': 'application/vnd.github.v3+json'
                         },
@@ -306,8 +345,7 @@
 
                 if (!saveResponse.ok) {
                     const errorData = await saveResponse.json();
-                    console.error('保存失败:', errorData);
-                    throw new Error(`GitHub保存失败: ${errorData.message}`);
+                    throw new Error(`保存失败: ${errorData.message}`);
                 }
 
                 console.log('用户保存成功');
@@ -320,14 +358,16 @@
 
         // 从GitHub搜索用户
         async function searchUserOnGitHub(userId) {
+            if (!githubToken) {
+                throw new Error('请先配置GitHub Token');
+            }
+
             try {
-                console.log('搜索用户ID:', userId);
-                
                 const response = await fetch(
                     `${GITHUB_API_BASE}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`,
                     {
                         headers: {
-                            'Authorization': `token ${GITHUB_CONFIG.token}`,
+                            'Authorization': `token ${githubToken}`,
                             'Accept': 'application/vnd.github.v3+json'
                         }
                     }
@@ -342,7 +382,6 @@
                 
                 // 搜索用户
                 const foundUser = Object.values(allData.users || {}).find(user => user.id === userId);
-                console.log('搜索结果:', foundUser);
                 return foundUser || null;
             } catch (error) {
                 console.error('搜索用户失败:', error);
@@ -354,14 +393,50 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('页面加载完成');
             
-            // 测试GitHub连接
-            testGitHubConnection().then(success => {
-                if (!success) {
-                    showAlert('loginAlert', 'GitHub连接失败，请检查配置', 'error');
+            // 检查是否已有保存的token
+            const savedToken = localStorage.getItem('githubToken');
+            if (savedToken) {
+                githubToken = savedToken;
+                document.getElementById('tokenModal').style.display = 'none';
+                document.getElementById('loginModal').style.display = 'flex';
+                
+                // 测试连接
+                testGitHubConnection().then(result => {
+                    if (!result.success) {
+                        showAlert('loginAlert', result.message, 'error');
+                    }
+                });
+            }
+
+            // 绑定事件
+            document.getElementById('tokenForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const token = document.getElementById('githubToken').value.trim();
+                
+                if (!token) {
+                    alert('请输入GitHub Token');
+                    return;
+                }
+
+                githubToken = token;
+                localStorage.setItem('githubToken', token);
+                
+                const result = await testGitHubConnection();
+                if (result.success) {
+                    document.getElementById('tokenModal').style.display = 'none';
+                    document.getElementById('loginModal').style.display = 'flex';
+                } else {
+                    showAlert('tokenAlert', result.message, 'error');
                 }
             });
 
-            // 绑定事件
+            document.getElementById('skipToken').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('tokenModal').style.display = 'none';
+                document.getElementById('loginModal').style.display = 'flex';
+                showAlert('loginAlert', '未配置GitHub Token，只能本地使用', 'error');
+            });
+
             document.getElementById('showRegister').addEventListener('click', function(e) {
                 e.preventDefault();
                 document.getElementById('loginModal').style.display = 'none';
@@ -379,9 +454,8 @@
                 const username = document.getElementById('loginUsername').value;
                 const password = document.getElementById('loginPassword').value;
                 
-                // 这里简化登录，实际应该从GitHub验证
                 if (username && password) {
-                    alert('登录成功！但搜索功能需要完整的聊天界面');
+                    alert('登录成功！但完整功能需要GitHub Token配置');
                 } else {
                     showAlert('loginAlert', '请输入用户名和密码', 'error');
                 }
@@ -408,27 +482,31 @@
                     return;
                 }
 
-                // 生成用户ID
                 const userId = Math.floor(100000 + Math.random() * 900000).toString();
-                
                 const userData = {
                     username: username,
                     password: password,
                     id: userId,
                     nickname: username,
-                    registerTime: new Date().toISOString(),
-                    lastLogin: new Date().toISOString()
+                    registerTime: new Date().toISOString()
                 };
 
                 try {
                     showAlert('registerAlert', '注册中...', 'success');
-                    await saveUserToGitHub(userData);
-                    showAlert('registerAlert', `注册成功！你的用户ID是: ${userId}`, 'success');
                     
-                    // 清空表单
+                    if (githubToken) {
+                        await saveUserToGitHub(userData);
+                        showAlert('registerAlert', `注册成功！用户ID: ${userId} (已保存到GitHub)`, 'success');
+                    } else {
+                        // 本地保存
+                        let localUsers = JSON.parse(localStorage.getItem('localUsers') || '{}');
+                        localUsers[username] = userData;
+                        localStorage.setItem('localUsers', JSON.stringify(localUsers));
+                        showAlert('registerAlert', `注册成功！用户ID: ${userId} (仅本地保存)`, 'success');
+                    }
+                    
                     document.getElementById('registerForm').reset();
                     
-                    // 3秒后跳转到登录
                     setTimeout(() => {
                         document.getElementById('registerModal').style.display = 'none';
                         document.getElementById('loginModal').style.display = 'flex';
@@ -439,28 +517,6 @@
                     showAlert('registerAlert', `注册失败: ${error.message}`, 'error');
                 }
             });
-
-            // 添加测试搜索功能
-            const testSearchButton = document.createElement('button');
-            testSearchButton.textContent = '测试搜索用户';
-            testSearchButton.className = 'btn btn-secondary';
-            testSearchButton.style.marginTop = '10px';
-            testSearchButton.onclick = async function() {
-                const testUserId = prompt('请输入要搜索的用户ID:');
-                if (testUserId) {
-                    try {
-                        const user = await searchUserOnGitHub(testUserId);
-                        if (user) {
-                            alert(`找到用户: ${user.username} (${user.nickname})`);
-                        } else {
-                            alert('未找到用户');
-                        }
-                    } catch (error) {
-                        alert('搜索失败: ' + error.message);
-                    }
-                }
-            };
-            document.querySelector('.modal-content').appendChild(testSearchButton);
         });
     </script>
 </body>
