@@ -111,12 +111,6 @@
             background-color: #3a6590;
         }
 
-        .btn-secondary {
-            background-color: transparent;
-            border: 1px solid var(--accent-color);
-            margin-top: 10px;
-        }
-
         .text-center {
             text-align: center;
         }
@@ -131,166 +125,24 @@
             padding: 20px;
         }
 
-        /* 主界面样式 */
-        .main-container {
-            width: 100%;
-            max-width: 1200px;
-            height: 90vh;
-            background-color: var(--secondary-bg);
+        .alert {
+            padding: 10px;
             border-radius: var(--border-radius);
-            display: none;
-            overflow: hidden;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-align: center;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background-color: var(--tertiary-bg);
-            border-bottom: 1px solid #333;
+        .alert-success {
+            background-color: rgba(76, 175, 80, 0.2);
+            border: 1px solid var(--success-color);
+            color: #a5d6a7;
         }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #555;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            cursor: pointer;
-            overflow: hidden;
-        }
-
-        .username {
-            font-weight: 500;
-        }
-
-        .user-id {
-            font-size: 12px;
-            color: var(--secondary-text);
-            cursor: pointer;
-        }
-
-        .search-btn {
-            padding: 8px 15px;
-            background-color: var(--accent-color);
-            border-radius: var(--border-radius);
-            cursor: pointer;
-        }
-
-        /* 好友列表 */
-        .friends-container {
-            display: flex;
-            height: calc(100% - 71px);
-        }
-
-        .friends-list {
-            width: 300px;
-            border-right: 1px solid #333;
-            overflow-y: auto;
-        }
-
-        .friend-item {
-            padding: 15px;
-            border-bottom: 1px solid #333;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .friend-item:hover {
-            background-color: var(--tertiary-bg);
-        }
-
-        .friend-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #555;
-        }
-
-        .friend-info {
-            flex: 1;
-        }
-
-        .friend-name {
-            font-weight: 500;
-        }
-
-        /* 聊天界面 */
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            display: none;
-        }
-
-        .chat-header {
-            padding: 15px;
-            border-bottom: 1px solid #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .message {
-            max-width: 70%;
-            padding: 10px 15px;
-            border-radius: 18px;
-        }
-
-        .message.received {
-            align-self: flex-start;
-            background-color: var(--tertiary-bg);
-        }
-
-        .message.sent {
-            align-self: flex-end;
-            background-color: var(--accent-color);
-        }
-
-        .chat-input {
-            padding: 15px;
-            border-top: 1px solid #333;
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 12px;
-            background-color: var(--tertiary-bg);
-            border: 1px solid #333;
-            border-radius: var(--border-radius);
-            color: var(--primary-text);
-        }
-
-        .chat-input button {
-            padding: 0 20px;
-            background-color: var(--accent-color);
-            border: none;
-            border-radius: var(--border-radius);
-            color: white;
-            cursor: pointer;
+        .alert-error {
+            background-color: rgba(244, 67, 54, 0.2);
+            border: 1px solid var(--danger-color);
+            color: #ef9a9a;
         }
     </style>
 </head>
@@ -302,6 +154,7 @@
                 <h2>登录</h2>
             </div>
             <form id="loginForm">
+                <div id="loginAlert"></div>
                 <div class="form-group">
                     <label for="loginUsername">用户名</label>
                     <input type="text" id="loginUsername" placeholder="输入用户名" required>
@@ -325,6 +178,7 @@
                 <h2>注册</h2>
             </div>
             <form id="registerForm">
+                <div id="registerAlert"></div>
                 <div class="form-group">
                     <label for="registerUsername">用户名 (6-12位数字和字母)</label>
                     <input type="text" id="registerUsername" placeholder="输入用户名" pattern="[A-Za-z0-9]{6,12}" required>
@@ -345,163 +199,65 @@
         </div>
     </div>
 
-    <!-- 昵称设置弹窗 -->
-    <div id="nicknameModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>设置昵称</h2>
-            </div>
-            <form id="nicknameForm">
-                <div class="form-group">
-                    <label for="nickname">昵称 (1-6位)</label>
-                    <input type="text" id="nickname" placeholder="输入昵称" maxlength="6" required>
-                </div>
-                <button type="submit" class="btn">确定</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- 搜索弹窗 -->
-    <div id="searchModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>搜索用户</h2>
-            </div>
-            <form id="searchForm">
-                <div class="form-group">
-                    <label for="searchId">用户编号</label>
-                    <input type="text" id="searchId" placeholder="输入用户编号" pattern="[0-9]{6,12}" required>
-                </div>
-                <button type="submit" class="btn">搜索</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- 搜索结果弹窗 -->
-    <div id="searchResultModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>搜索结果</h2>
-            </div>
-            <div id="searchResultContent">
-                <!-- 搜索结果将动态填充 -->
-            </div>
-        </div>
-    </div>
-
-    <!-- 主界面 -->
-    <div id="mainContainer" class="main-container">
-        <div class="header">
-            <div class="user-info">
-                <div class="avatar" id="userAvatar">
-                    <!-- 头像将动态填充 -->
-                </div>
-                <div>
-                    <div class="username" id="displayUsername">用户名</div>
-                    <div class="user-id" id="userId">ID: 123456</div>
-                </div>
-            </div>
-            <div class="search-btn" id="searchButton">搜索</div>
-        </div>
-        <div class="friends-container">
-            <div class="friends-list" id="friendsList">
-                <!-- 好友列表将动态填充 -->
-            </div>
-            <div class="chat-container" id="chatContainer">
-                <div class="chat-header">
-                    <div class="avatar" id="chatFriendAvatar">
-                        <!-- 好友头像将动态填充 -->
-                    </div>
-                    <div class="friend-name" id="chatFriendName">好友名称</div>
-                </div>
-                <div class="chat-messages" id="chatMessages">
-                    <!-- 聊天消息将动态填充 -->
-                </div>
-                <div class="chat-input">
-                    <input type="text" id="messageInput" placeholder="输入消息...">
-                    <button id="sendMessage">发送</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         // ==================== GitHub配置 ====================
-        // 请修改以下配置为你的GitHub信息
         const GITHUB_CONFIG = {
-            // 你的GitHub用户名
             owner: "mye8957-ai",
-            // 仓库名（需要提前创建）
             repo: "chat",
-            // 存储用户数据的文件路径
             path: "users.json",
-            // GitHub Personal Access Token（需要有repo权限）
-            token: "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",
-            // 仓库分支（通常是main）
+            token: "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",
             branch: "main"
         };
 
-        // GitHub API基础URL
         const GITHUB_API_BASE = 'https://api.github.com';
 
-        // 本地存储的键名
-        const STORAGE_KEYS = {
-            USERS: 'chatUsers',
-            FRIENDS: 'chatFriends',
-            MESSAGES: 'chatMessages',
-            FRIEND_REQUESTS: 'friendRequests',
-            CURRENT_USER: 'currentUser'
-        };
-
-        // 全局变量
-        let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || {};
-        let currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER)) || null;
-        let friends = JSON.parse(localStorage.getItem(STORAGE_KEYS.FRIENDS)) || {};
-        let messages = JSON.parse(localStorage.getItem(STORAGE_KEYS.MESSAGES)) || {};
-        let friendRequests = JSON.parse(localStorage.getItem(STORAGE_KEYS.FRIEND_REQUESTS)) || {};
-        let currentChatFriend = null;
-
-        // DOM元素
-        const loginModal = document.getElementById('loginModal');
-        const registerModal = document.getElementById('registerModal');
-        const nicknameModal = document.getElementById('nicknameModal');
-        const searchModal = document.getElementById('searchModal');
-        const searchResultModal = document.getElementById('searchResultModal');
-        const mainContainer = document.getElementById('mainContainer');
-
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            if (currentUser) {
-                showMainInterface();
-            }
-            bindEvents();
-        });
-
-        // 绑定事件
-        function bindEvents() {
-            document.getElementById('showRegister').addEventListener('click', showRegisterModal);
-            document.getElementById('showLogin').addEventListener('click', showLoginModal);
-            document.getElementById('loginForm').addEventListener('submit', handleLogin);
-            document.getElementById('registerForm').addEventListener('submit', handleRegister);
-            document.getElementById('nicknameForm').addEventListener('submit', handleNickname);
-            document.getElementById('searchButton').addEventListener('click', showSearchModal);
-            document.getElementById('searchForm').addEventListener('submit', handleSearch);
-            document.getElementById('sendMessage').addEventListener('click', sendMessage);
-            document.getElementById('messageInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') sendMessage();
-            });
-            document.getElementById('userId').addEventListener('click', copyUserId);
+        // 显示提示信息
+        function showAlert(containerId, message, type = 'error') {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
         }
 
-        // GitHub API相关函数
-        async function saveUserToGitHub(userData) {
+        // 测试GitHub连接
+        async function testGitHubConnection() {
             try {
-                // 首先获取当前文件信息（如果存在）
+                console.log('测试GitHub连接...');
+                const response = await fetch(
+                    `${GITHUB_API_BASE}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`,
+                    {
+                        headers: {
+                            'Authorization': `token ${GITHUB_CONFIG.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+                
+                if (response.ok) {
+                    console.log('GitHub仓库连接成功');
+                    return true;
+                } else {
+                    console.error('GitHub仓库连接失败:', response.status, response.statusText);
+                    return false;
+                }
+            } catch (error) {
+                console.error('GitHub连接错误:', error);
+                return false;
+            }
+        }
+
+        // 保存用户到GitHub
+        async function saveUserToGitHub(userData) {
+            console.log('开始保存用户到GitHub:', userData);
+            
+            try {
+                // 首先尝试获取现有文件
+                let existingData = { users: {} };
                 let sha = null;
-                let existingUsers = {};
                 
                 try {
-                    const existingFile = await fetch(
+                    const fileResponse = await fetch(
                         `${GITHUB_API_BASE}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`,
                         {
                             headers: {
@@ -511,20 +267,26 @@
                         }
                     );
                     
-                    if (existingFile.ok) {
-                        const fileData = await existingFile.json();
-                        sha = fileData.sha;
-                        existingUsers = JSON.parse(atob(fileData.content));
+                    if (fileResponse.ok) {
+                        const fileInfo = await fileResponse.json();
+                        sha = fileInfo.sha;
+                        const content = atob(fileInfo.content.replace(/\n/g, ''));
+                        existingData = JSON.parse(content);
+                        console.log('找到现有文件:', existingData);
                     }
                 } catch (error) {
                     console.log('文件不存在，将创建新文件');
                 }
 
                 // 更新用户数据
-                existingUsers[userData.username] = userData;
+                if (!existingData.users) {
+                    existingData.users = {};
+                }
+                existingData.users[userData.username] = userData;
+                existingData.lastUpdate = new Date().toISOString();
 
                 // 保存到GitHub
-                const response = await fetch(
+                const saveResponse = await fetch(
                     `${GITHUB_API_BASE}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`,
                     {
                         method: 'PUT',
@@ -534,27 +296,33 @@
                             'Accept': 'application/vnd.github.v3+json'
                         },
                         body: JSON.stringify({
-                            message: `Add user: ${userData.username}`,
-                            content: btoa(JSON.stringify(existingUsers, null, 2)),
+                            message: `添加用户: ${userData.username}`,
+                            content: btoa(JSON.stringify(existingData, null, 2)),
                             sha: sha,
                             branch: GITHUB_CONFIG.branch
                         })
                     }
                 );
 
-                if (!response.ok) {
-                    throw new Error('保存到GitHub失败');
+                if (!saveResponse.ok) {
+                    const errorData = await saveResponse.json();
+                    console.error('保存失败:', errorData);
+                    throw new Error(`GitHub保存失败: ${errorData.message}`);
                 }
 
-                return await response.json();
+                console.log('用户保存成功');
+                return await saveResponse.json();
             } catch (error) {
-                console.error('GitHub保存错误:', error);
+                console.error('保存用户到GitHub失败:', error);
                 throw error;
             }
         }
 
+        // 从GitHub搜索用户
         async function searchUserOnGitHub(userId) {
             try {
+                console.log('搜索用户ID:', userId);
+                
                 const response = await fetch(
                     `${GITHUB_API_BASE}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`,
                     {
@@ -570,318 +338,130 @@
                 }
 
                 const fileData = await response.json();
-                const allUsers = JSON.parse(atob(fileData.content));
+                const allData = JSON.parse(atob(fileData.content.replace(/\n/g, '')));
                 
                 // 搜索用户
-                const foundUser = Object.values(allUsers).find(user => user.id === userId);
+                const foundUser = Object.values(allData.users || {}).find(user => user.id === userId);
+                console.log('搜索结果:', foundUser);
                 return foundUser || null;
             } catch (error) {
-                console.error('GitHub搜索错误:', error);
+                console.error('搜索用户失败:', error);
                 throw error;
             }
         }
 
-        // 用户管理函数
-        function showRegisterModal(e) {
-            e.preventDefault();
-            loginModal.style.display = 'none';
-            registerModal.style.display = 'flex';
-        }
-
-        function showLoginModal(e) {
-            e.preventDefault();
-            registerModal.style.display = 'none';
-            nicknameModal.style.display = 'none';
-            loginModal.style.display = 'flex';
-        }
-
-        async function handleLogin(e) {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成');
             
-            if (users[username] && users[username].password === password) {
-                currentUser = users[username];
-                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
-                showMainInterface();
-            } else {
-                alert('用户名或密码错误！');
-            }
-        }
-
-        async function handleRegister(e) {
-            e.preventDefault();
-            const username = document.getElementById('registerUsername').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (password !== confirmPassword) {
-                alert('两次输入的密码不一致！');
-                return;
-            }
-            
-            if (users[username]) {
-                alert('用户名已存在！');
-                return;
-            }
-            
-            // 生成用户ID
-            const userId = generateUserId();
-            
-            // 创建用户数据
-            const userData = {
-                username: username,
-                password: password,
-                id: userId,
-                nickname: '',
-                registerTime: new Date().toISOString()
-            };
-            
-            // 保存到本地
-            users[username] = userData;
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-            
-            // 保存到GitHub
-            try {
-                await saveUserToGitHub(userData);
-                currentUser = userData;
-                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
-                
-                // 初始化本地数据
-                friends[username] = [];
-                messages[username] = {};
-                friendRequests[username] = [];
-                localStorage.setItem(STORAGE_KEYS.FRIENDS, JSON.stringify(friends));
-                localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
-                localStorage.setItem(STORAGE_KEYS.FRIEND_REQUESTS, JSON.stringify(friendRequests));
-                
-                // 切换到昵称设置
-                registerModal.style.display = 'none';
-                nicknameModal.style.display = 'flex';
-            } catch (error) {
-                alert('注册失败，请检查GitHub配置');
-            }
-        }
-
-        function handleNickname(e) {
-            e.preventDefault();
-            const nickname = document.getElementById('nickname').value;
-            
-            if (nickname.length < 1 || nickname.length > 6) {
-                alert('昵称长度必须在1-6位之间！');
-                return;
-            }
-            
-            // 更新用户数据
-            currentUser.nickname = nickname;
-            users[currentUser.username] = currentUser;
-            
-            // 更新本地存储
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-            localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
-            
-            // 更新GitHub（异步，不阻塞）
-            saveUserToGitHub(currentUser).catch(console.error);
-            
-            // 显示主界面
-            nicknameModal.style.display = 'none';
-            showMainInterface();
-        }
-
-        function showMainInterface() {
-            loginModal.style.display = 'none';
-            registerModal.style.display = 'none';
-            nicknameModal.style.display = 'none';
-            mainContainer.style.display = 'block';
-            
-            // 更新用户信息
-            document.getElementById('displayUsername').textContent = currentUser.nickname || currentUser.username;
-            document.getElementById('userId').textContent = `ID: ${currentUser.id}`;
-            document.getElementById('userAvatar').textContent = (currentUser.nickname || currentUser.username).charAt(0).toUpperCase();
-            
-            // 加载好友列表
-            loadFriendsList();
-        }
-
-        function generateUserId() {
-            let id;
-            do {
-                id = Math.floor(100000 + Math.random() * 900000).toString();
-            } while (Object.values(users).some(user => user.id === id));
-            return id;
-        }
-
-        function showSearchModal() {
-            searchModal.style.display = 'flex';
-        }
-
-        async function handleSearch(e) {
-            e.preventDefault();
-            const searchId = document.getElementById('searchId').value;
-            
-            // 显示加载中
-            const resultContent = document.getElementById('searchResultContent');
-            resultContent.innerHTML = '<div class="loading">搜索中...</div>';
-            
-            searchModal.style.display = 'none';
-            searchResultModal.style.display = 'flex';
-            
-            try {
-                // 从GitHub搜索用户
-                const foundUser = await searchUserOnGitHub(searchId);
-                
-                if (foundUser && foundUser.username !== currentUser.username) {
-                    resultContent.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-                            <div class="avatar" style="width: 60px; height: 60px;">
-                                ${(foundUser.nickname || foundUser.username).charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <div style="font-weight: 500;">${foundUser.nickname || foundUser.username}</div>
-                                <div style="font-size: 14px; color: var(--secondary-text);">ID: ${foundUser.id}</div>
-                            </div>
-                        </div>
-                        <button class="btn" id="addFriendBtn">添加好友</button>
-                    `;
-                    
-                    document.getElementById('addFriendBtn').addEventListener('click', function() {
-                        sendFriendRequest(foundUser);
-                    });
-                } else {
-                    resultContent.innerHTML = '<div class="loading">未找到用户或不能添加自己为好友！</div>';
+            // 测试GitHub连接
+            testGitHubConnection().then(success => {
+                if (!success) {
+                    showAlert('loginAlert', 'GitHub连接失败，请检查配置', 'error');
                 }
-            } catch (error) {
-                resultContent.innerHTML = '<div class="loading">搜索失败，请检查网络连接和GitHub配置</div>';
-            }
-        }
-
-        function sendFriendRequest(friendUser) {
-            if (!friendRequests[friendUser.username]) {
-                friendRequests[friendUser.username] = [];
-            }
-            
-            // 检查是否已经发送过申请
-            const existingRequest = friendRequests[friendUser.username].find(
-                req => req.from === currentUser.username
-            );
-            
-            if (existingRequest) {
-                alert('您已经向该用户发送过好友申请！');
-                return;
-            }
-            
-            // 添加好友申请
-            friendRequests[friendUser.username].push({
-                from: currentUser.username,
-                fromId: currentUser.id,
-                fromNickname: currentUser.nickname || currentUser.username,
-                message: `你好，我是${currentUser.nickname || currentUser.username}`,
-                timestamp: new Date().toISOString()
             });
-            
-            localStorage.setItem(STORAGE_KEYS.FRIEND_REQUESTS, JSON.stringify(friendRequests));
-            
-            alert('好友申请已发送！');
-            searchResultModal.style.display = 'none';
-        }
 
-        function loadFriendsList() {
-            const friendsList = document.getElementById('friendsList');
-            friendsList.innerHTML = '';
-            
-            if (friends[currentUser.username] && friends[currentUser.username].length > 0) {
-                friends[currentUser.username].forEach(friend => {
-                    const friendItem = document.createElement('div');
-                    friendItem.className = 'friend-item';
-                    friendItem.innerHTML = `
-                        <div class="friend-avatar">
-                            ${(friend.nickname || friend.username).charAt(0).toUpperCase()}
-                        </div>
-                        <div class="friend-info">
-                            <div class="friend-name">${friend.nickname || friend.username}</div>
-                        </div>
-                    `;
+            // 绑定事件
+            document.getElementById('showRegister').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('registerModal').style.display = 'flex';
+            });
+
+            document.getElementById('showLogin').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('registerModal').style.display = 'none';
+                document.getElementById('loginModal').style.display = 'flex';
+            });
+
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                // 这里简化登录，实际应该从GitHub验证
+                if (username && password) {
+                    alert('登录成功！但搜索功能需要完整的聊天界面');
+                } else {
+                    showAlert('loginAlert', '请输入用户名和密码', 'error');
+                }
+            });
+
+            document.getElementById('registerForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('registerUsername').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (password !== confirmPassword) {
+                    showAlert('registerAlert', '两次输入的密码不一致！', 'error');
+                    return;
+                }
+                
+                if (!username.match(/^[A-Za-z0-9]{6,12}$/)) {
+                    showAlert('registerAlert', '用户名必须是6-12位数字和字母！', 'error');
+                    return;
+                }
+                
+                if (!password.match(/^[A-Za-z0-9]{8,16}$/)) {
+                    showAlert('registerAlert', '密码必须是8-16位数字和字母！', 'error');
+                    return;
+                }
+
+                // 生成用户ID
+                const userId = Math.floor(100000 + Math.random() * 900000).toString();
+                
+                const userData = {
+                    username: username,
+                    password: password,
+                    id: userId,
+                    nickname: username,
+                    registerTime: new Date().toISOString(),
+                    lastLogin: new Date().toISOString()
+                };
+
+                try {
+                    showAlert('registerAlert', '注册中...', 'success');
+                    await saveUserToGitHub(userData);
+                    showAlert('registerAlert', `注册成功！你的用户ID是: ${userId}`, 'success');
                     
-                    friendItem.addEventListener('click', function() {
-                        openChat(friend);
-                    });
+                    // 清空表单
+                    document.getElementById('registerForm').reset();
                     
-                    friendsList.appendChild(friendItem);
-                });
-            } else {
-                friendsList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--secondary-text);">暂无好友</div>';
-            }
-        }
+                    // 3秒后跳转到登录
+                    setTimeout(() => {
+                        document.getElementById('registerModal').style.display = 'none';
+                        document.getElementById('loginModal').style.display = 'flex';
+                        document.getElementById('loginUsername').value = username;
+                    }, 3000);
+                    
+                } catch (error) {
+                    showAlert('registerAlert', `注册失败: ${error.message}`, 'error');
+                }
+            });
 
-        function openChat(friend) {
-            document.getElementById('chatContainer').style.display = 'flex';
-            document.getElementById('chatFriendName').textContent = friend.nickname || friend.username;
-            document.getElementById('chatFriendAvatar').textContent = (friend.nickname || friend.username).charAt(0).toUpperCase();
-            
-            loadChatMessages(friend.username);
-            currentChatFriend = friend.username;
-        }
-
-        function loadChatMessages(friendUsername) {
-            const chatMessages = document.getElementById('chatMessages');
-            chatMessages.innerHTML = '';
-            
-            if (messages[currentUser.username] && messages[currentUser.username][friendUsername]) {
-                messages[currentUser.username][friendUsername].forEach(msg => {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `message ${msg.sender === currentUser.username ? 'sent' : 'received'}`;
-                    messageDiv.innerHTML = `<div>${msg.content}</div>`;
-                    chatMessages.appendChild(messageDiv);
-                });
-            }
-            
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const content = messageInput.value.trim();
-            
-            if (!content || !currentChatFriend) return;
-            
-            const message = {
-                sender: currentUser.username,
-                content: content,
-                timestamp: new Date().toISOString()
+            // 添加测试搜索功能
+            const testSearchButton = document.createElement('button');
+            testSearchButton.textContent = '测试搜索用户';
+            testSearchButton.className = 'btn btn-secondary';
+            testSearchButton.style.marginTop = '10px';
+            testSearchButton.onclick = async function() {
+                const testUserId = prompt('请输入要搜索的用户ID:');
+                if (testUserId) {
+                    try {
+                        const user = await searchUserOnGitHub(testUserId);
+                        if (user) {
+                            alert(`找到用户: ${user.username} (${user.nickname})`);
+                        } else {
+                            alert('未找到用户');
+                        }
+                    } catch (error) {
+                        alert('搜索失败: ' + error.message);
+                    }
+                }
             };
-            
-            // 保存消息
-            if (!messages[currentUser.username]) {
-                messages[currentUser.username] = {};
-            }
-            if (!messages[currentUser.username][currentChatFriend]) {
-                messages[currentUser.username][currentChatFriend] = [];
-            }
-            
-            messages[currentUser.username][currentChatFriend].push(message);
-            
-            // 同时保存到对方的消息记录中
-            if (!messages[currentChatFriend]) {
-                messages[currentChatFriend] = {};
-            }
-            if (!messages[currentChatFriend][currentUser.username]) {
-                messages[currentChatFriend][currentUser.username] = [];
-            }
-            
-            messages[currentChatFriend][currentUser.username].push(message);
-            
-            localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
-            
-            loadChatMessages(currentChatFriend);
-            messageInput.value = '';
-        }
-
-        function copyUserId() {
-            const id = currentUser.id;
-            navigator.clipboard.writeText(id).then(() => {
-                alert('用户ID已复制到剪贴板！');
-            });
-        }
+            document.querySelector('.modal-content').appendChild(testSearchButton);
+        });
     </script>
 </body>
-                      </html>
+</html>
