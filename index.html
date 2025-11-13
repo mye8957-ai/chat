@@ -337,6 +337,34 @@
             background: #da3633;
             color: white;
         }
+        
+        .api-status.warning {
+            background: #d29922;
+            color: white;
+        }
+
+        .troubleshoot-section {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .troubleshoot-section h4 {
+            color: #f0f6fc;
+            margin-bottom: 10px;
+        }
+
+        .troubleshoot-section ul {
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .troubleshoot-section li {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -346,8 +374,20 @@
                 <div class="logo-icon">💬</div>
                 <h1>GitHub JSON聊天平台</h1>
             </div>
-            <div class="token-status">Token已设置 ✓</div>
+            <div class="token-status" id="tokenStatus">Token已设置 ✓</div>
         </header>
+
+        <!-- 问题诊断区域 -->
+        <div class="troubleshoot-section" id="troubleshootSection" style="display: none;">
+            <h4>GitHub API连接问题诊断</h4>
+            <ul>
+                <li>✅ Token格式正确</li>
+                <li id="repoCheck">❌ 检查仓库是否存在</li>
+                <li id="fileCheck">❌ 检查users.json文件</li>
+                <li id="tokenPermCheck">❌ 检查Token权限</li>
+            </ul>
+            <button class="auth-button" onclick="runDiagnostics()" style="background: #d29922;">重新诊断</button>
+        </div>
 
         <!-- 登录/注册区域 -->
         <div class="auth-section" id="authSection">
@@ -355,9 +395,13 @@
                 <div class="auth-tab active" onclick="switchAuthTab('login')">登录</div>
                 <div class="auth-tab" onclick="switchAuthTab('register')">注册</div>
                 <div class="auth-tab" onclick="switchAuthTab('jsonView')">数据管理</div>
+                <div class="auth-tab" onclick="switchAuthTab('troubleshoot')">问题诊断</div>
             </div>
             
             <div class="auth-form active" id="loginForm">
+                <div class="api-status warning" id="loginStatus">
+                    注意：首次使用请先在"数据管理"中创建users.json文件
+                </div>
                 <div class="form-group">
                     <label for="loginUsername">用户名</label>
                     <input type="text" id="loginUsername" placeholder="输入您的用户名">
@@ -367,6 +411,7 @@
                     <input type="password" id="loginPassword" placeholder="输入您的密码">
                 </div>
                 <button class="auth-button" onclick="login()">登录</button>
+                <button class="auth-button" onclick="demoLogin()" style="background: #1f6feb; margin-top: 10px;">演示登录</button>
             </div>
             
             <div class="auth-form" id="registerForm">
@@ -388,8 +433,25 @@
 点击"加载数据"查看当前users.json内容
                 </div>
                 <button class="auth-button" onclick="loadJSONData()">加载数据</button>
+                <button class="auth-button" onclick="createInitialJSON()" style="background: #d29922; margin-top: 10px;">创建初始文件</button>
                 <button class="auth-button" onclick="updateJSONData()" style="background: #1f6feb; margin-top: 10px;">保存数据</button>
                 <button class="auth-button" onclick="resetJSONData()" style="background: #da3633; margin-top: 10px;">重置数据</button>
+            </div>
+
+            <div class="auth-form" id="troubleshootForm">
+                <h3>GitHub API问题诊断</h3>
+                <div class="api-status" id="diagnosticStatus">点击下方按钮开始诊断</div>
+                <button class="auth-button" onclick="runDiagnostics()">运行诊断</button>
+                
+                <div class="troubleshoot-section">
+                    <h4>常见问题解决方案：</h4>
+                    <ul>
+                        <li><strong>仓库不存在：</strong>请确保仓库 'mye8957-ai/chat' 已创建</li>
+                        <li><strong>Token权限不足：</strong>Token需要 repo 权限</li>
+                        <li><strong>文件不存在：</strong>首次使用需要点击"创建初始文件"</li>
+                        <li><strong>CORS问题：</strong>建议使用本地服务器运行</li>
+                    </ul>
+                </div>
             </div>
             
             <div class="search-section">
@@ -472,6 +534,7 @@
             document.getElementById('loginForm').classList.remove('active');
             document.getElementById('registerForm').classList.remove('active');
             document.getElementById('jsonViewForm').classList.remove('active');
+            document.getElementById('troubleshootForm').classList.remove('active');
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
             
             if (tab === 'login') {
@@ -480,6 +543,9 @@
             } else if (tab === 'register') {
                 document.getElementById('registerForm').classList.add('active');
                 document.querySelectorAll('.auth-tab')[1].classList.add('active');
+            } else if (tab === 'troubleshoot') {
+                document.getElementById('troubleshootForm').classList.add('active');
+                document.querySelectorAll('.auth-tab')[3].classList.add('active');
             } else {
                 document.getElementById('jsonViewForm').classList.add('active');
                 document.querySelectorAll('.auth-tab')[2].classList.add('active');
@@ -491,6 +557,184 @@
             const statusEl = document.getElementById('apiStatus');
             statusEl.textContent = message;
             statusEl.className = `api-status ${isSuccess ? 'success' : 'error'}`;
+        }
+
+        // 显示诊断状态
+        function showDiagnosticStatus(message, isSuccess = true) {
+            const statusEl = document.getElementById('diagnosticStatus');
+            statusEl.textContent = message;
+            statusEl.className = `api-status ${isSuccess ? 'success' : 'error'}`;
+        }
+
+        // 运行诊断
+        async function runDiagnostics() {
+            showDiagnosticStatus('开始诊断...', true);
+            
+            // 检查仓库是否存在
+            try {
+                const repoResponse = await fetch(
+                    `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`,
+                    {
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+                
+                if (repoResponse.ok) {
+                    document.getElementById('repoCheck').innerHTML = '✅ 仓库存在';
+                } else {
+                    document.getElementById('repoCheck').innerHTML = `❌ 仓库不存在 (${repoResponse.status})`;
+                    showDiagnosticStatus(`仓库 ${REPO_OWNER}/${REPO_NAME} 不存在`, false);
+                    return;
+                }
+            } catch (error) {
+                document.getElementById('repoCheck').innerHTML = `❌ 仓库检查失败: ${error.message}`;
+                showDiagnosticStatus('仓库检查失败', false);
+                return;
+            }
+
+            // 检查文件是否存在
+            try {
+                const fileResponse = await fetch(
+                    `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${JSON_FILE_PATH}`,
+                    {
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+                
+                if (fileResponse.ok) {
+                    document.getElementById('fileCheck').innerHTML = '✅ users.json文件存在';
+                } else {
+                    document.getElementById('fileCheck').innerHTML = `❌ users.json文件不存在 (${fileResponse.status})`;
+                    showDiagnosticStatus('users.json文件不存在，请点击"创建初始文件"', false);
+                    return;
+                }
+            } catch (error) {
+                document.getElementById('fileCheck').innerHTML = `❌ 文件检查失败: ${error.message}`;
+                showDiagnosticStatus('文件检查失败', false);
+                return;
+            }
+
+            // 检查Token权限
+            try {
+                const userResponse = await fetch(
+                    'https://api.github.com/user',
+                    {
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+                
+                if (userResponse.ok) {
+                    document.getElementById('tokenPermCheck').innerHTML = '✅ Token权限正常';
+                    showDiagnosticStatus('所有检查通过！API连接正常', true);
+                } else {
+                    document.getElementById('tokenPermCheck').innerHTML = `❌ Token权限不足 (${userResponse.status})`;
+                    showDiagnosticStatus('Token权限不足，请检查权限设置', false);
+                }
+            } catch (error) {
+                document.getElementById('tokenPermCheck').innerHTML = `❌ Token检查失败: ${error.message}`;
+                showDiagnosticStatus('Token检查失败', false);
+            }
+        }
+
+        // 创建初始JSON文件
+        async function createInitialJSON() {
+            try {
+                showApiStatus('正在创建初始文件...', true);
+                
+                const initialData = {
+                    users: [
+                        {
+                            id: "user1",
+                            username: "mye8957-ai",
+                            password: "demo123",
+                            createdAt: new Date().toISOString(),
+                            friends: ["user2"],
+                            profile: {
+                                avatar: "ME",
+                                bio: "平台创建者"
+                            }
+                        },
+                        {
+                            id: "user2",
+                            username: "demo-user",
+                            password: "demo123",
+                            createdAt: new Date().toISOString(),
+                            friends: ["user1"],
+                            profile: {
+                                avatar: "DU",
+                                bio: "演示用户"
+                            }
+                        }
+                    ],
+                    friendships: [
+                        {
+                            id: "friendship1",
+                            user1: "user1",
+                            user2: "user2",
+                            status: "accepted",
+                            createdAt: new Date().toISOString()
+                        }
+                    ],
+                    messages: [
+                        {
+                            id: "msg1",
+                            sender: "user1",
+                            receiver: "user2",
+                            content: "欢迎使用GitHub聊天平台！",
+                            timestamp: new Date().toISOString(),
+                            read: false
+                        },
+                        {
+                            id: "msg2",
+                            sender: "user2",
+                            receiver: "user1",
+                            content: "谢谢！这个平台很棒！",
+                            timestamp: new Date().toISOString(),
+                            read: false
+                        }
+                    ]
+                };
+
+                const response = await fetch(
+                    `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${JSON_FILE_PATH}`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: '创建初始用户数据',
+                            content: btoa(JSON.stringify(initialData, null, 2))
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`创建失败: ${response.status}`);
+                }
+
+                usersData = initialData;
+                document.getElementById('jsonDataView').textContent = JSON.stringify(initialData, null, 2);
+                showApiStatus('初始文件创建成功！', true);
+                
+                // 更新诊断状态
+                document.getElementById('fileCheck').innerHTML = '✅ users.json文件已创建';
+                
+            } catch (error) {
+                console.error('创建文件失败:', error);
+                showApiStatus(`创建失败: ${error.message}`, false);
+            }
         }
 
         // 从GitHub加载JSON数据
@@ -509,6 +753,10 @@
                 );
 
                 if (!response.ok) {
+                    if (response.status === 404) {
+                        showApiStatus('文件不存在，请先点击"创建初始文件"', false);
+                        return null;
+                    }
                     throw new Error(`GitHub API错误: ${response.status}`);
                 }
 
@@ -596,6 +844,13 @@
             showApiStatus('数据已重置（请点击保存按钮应用更改）', true);
         }
 
+        // 演示登录
+        function demoLogin() {
+            document.getElementById('loginUsername').value = 'mye8957-ai';
+            document.getElementById('loginPassword').value = 'demo123';
+            login();
+        }
+
         // 登录功能
         async function login() {
             const username = document.getElementById('loginUsername').value;
@@ -606,31 +861,42 @@
                 return;
             }
             
-            // 加载用户数据
-            const data = await loadJSONData();
-            if (!data) {
-                alert('无法加载用户数据');
-                return;
+            // 如果是演示用户，使用本地数据
+            if (username === 'mye8957-ai' && password === 'demo123' && usersData.users.length === 0) {
+                // 使用演示数据
+                currentUser = {
+                    id: "user1",
+                    username: "mye8957-ai",
+                    password: "demo123",
+                    profile: { avatar: "ME" }
+                };
+            } else {
+                // 加载用户数据
+                const data = await loadJSONData();
+                if (!data) {
+                    alert('无法加载用户数据，请检查文件是否存在');
+                    return;
+                }
+                
+                // 验证用户
+                const user = data.users.find(u => u.username === username && u.password === password);
+                if (!user) {
+                    alert('用户名或密码错误');
+                    return;
+                }
+                currentUser = user;
             }
             
-            // 验证用户
-            const user = data.users.find(u => u.username === username && u.password === password);
-            if (user) {
-                currentUser = user;
-                
-                // 显示主界面
-                document.getElementById('authSection').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'grid';
-                
-                // 更新用户信息
-                document.getElementById('displayUsername').textContent = user.username;
-                document.getElementById('userAvatar').textContent = user.username.substring(0, 2).toUpperCase();
-                
-                // 加载好友列表
-                loadFriendsList();
-            } else {
-                alert('用户名或密码错误');
-            }
+            // 显示主界面
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'grid';
+            
+            // 更新用户信息
+            document.getElementById('displayUsername').textContent = currentUser.username;
+            document.getElementById('userAvatar').textContent = currentUser.profile.avatar;
+            
+            // 加载好友列表
+            loadFriendsList();
         }
         
         // 注册功能
@@ -646,7 +912,7 @@
             // 加载现有数据
             const data = await loadJSONData();
             if (!data) {
-                alert('无法加载用户数据');
+                alert('无法加载用户数据，请先创建初始文件');
                 return;
             }
             
@@ -848,6 +1114,8 @@
         // 页面加载时显示Token状态
         document.addEventListener('DOMContentLoaded', function() {
             console.log('GitHub Token已设置:', GITHUB_TOKEN.substring(0, 10) + '...');
+            // 自动运行诊断
+            setTimeout(runDiagnostics, 1000);
         });
     </script>
 </body>
